@@ -1,69 +1,55 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import authConfig from "@/app/api/auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
-export async function POST(request: Request) {
+export async function GET(req: Request) {
   try {
-    const { sessionId } = await request.json();
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get("session_id");
+
     if (!sessionId) {
-      return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing session_id" },
+        { status: 400 }
+      );
     }
 
+    // Fetch checkout session
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    const userSession = await getServerSession(authConfig);
-    if (!userSession?.user?.email) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    if (!session || !session.id) {
+      return NextResponse.json(
+        { error: "Invalid Stripe session" },
+        { status: 404 }
+      );
     }
 
-    // Extract item IDs from metadata
-    const itemIds: string[] = JSON.parse(session.metadata?.item_ids || "[]");
-
-    if (!itemIds.length) {
-      return NextResponse.json({ error: "No items found in session" }, { status: 400 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: userSession.user.email },
+    // Example: store successful payment in DB
+    await prisma.order.create({
+      data: {
+        stripeSessionId: session.id,
+        amountTotal: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+        paymentStatus: session.payment_status ?? "unknown",
+        email: session.customer_details?.email || "",
+      },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Add each item to inventory
-    for (const id of itemIds) {
-      await prisma.inventory.create({
-        data: {
-          userId: user.id,
-          itemName: id,
-          price: 0, // actual price not needed in DB anymore
-          imageUrl: "",
-          printifyId: id,
-          equipped: false,
-        },
-      });
-    }
-
-    // Add XP (simple version: 1 XP per $1)
-    const amountTotal = session.amount_total ?? 0;
-    const earnedXp = Math.round(amountTotal / 100);
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { xp: { increment: earnedXp } },
+    return NextResponse.json({
+      success: true,
+      message: "Payment recorded successfully",
+      session_id: session.id,
     });
-
-    return NextResponse.json({ success: true, earnedXp });
   } catch (err: any) {
-    console.error("Payment success error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Payment success route error:", err);
+    return NextResponse.json(
+      { error: err.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
