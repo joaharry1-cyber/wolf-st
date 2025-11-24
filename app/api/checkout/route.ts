@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// ⚡ Fixed Stripe API version to match installed types
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-10-29.clover",
+  apiVersion: "2025-10-29.clover", // Latest supported API for your Stripe SDK
 });
 
 export async function POST(req: Request) {
