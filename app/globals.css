@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
+/* ────────────────────────────────────────────────
+   LUXURY EDITORIAL OFF-WHITE THEME (Option B)
+   Dior / Celine style minimalism
+   ──────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Soft off-white background */
+  --bg-base: #f7f7f8;
+  --bg-section: #ffffff;
+
+  /* Text colors */
+  --text-main: #1a1a1c;        /* Soft deep charcoal */
+  --text-muted: #7b7b82;
+
+  /* Metallic highlights */
+  --metal-main: #c5c5d1;       /* Soft brushed silver */
+  --metal-dark: #8f8f99;
+
+  /* Borders & glow */
+  --border-soft: rgba(0, 0, 0, 0.08);
+  --aura: rgba(150, 150, 170, 0.20);
+
+  /* Shadow depth */
+  --shadow: rgba(0, 0, 0, 0.09);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark mode alignment (still luxury, but optional) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-base: #0b0b0c;
+    --bg-section: #111113;
+    --text-main: #e5e5e8;
+    --text-muted: #7e7e85;
   }
 }
 
+/* Body styling */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-base);
+  color: var(--text-main);
   font-family: Arial, Helvetica, sans-serif;
+
+  /* Soft luxury metallic cursor */
+  cursor: url("/cursor-light.png") 16 16, auto;
+}
+
+/* ────────────────────────────────────────────────
+   LUXURY BUTTON SYSTEM
+   ──────────────────────────────────────────────── */
+
+.btn-lux {
+  @apply px-5 py-2 rounded-xl bg-[var(--metal-main)]/10
+  border border-[var(--border-soft)] text-[var(--text-main)]
+  uppercase tracking-wide text-xs backdrop-blur-md
+  transition-all duration-300 hover:bg-[var(--metal-main)]/20;
+}
+
+.btn-lux-ghost {
+  @apply px-5 py-2 rounded-xl bg-transparent
+  border border-[var(--border-soft)] text-[var(--text-muted)]
+  uppercase tracking-wide text-xs backdrop-blur-sm
+  transition-all duration-300 hover:text-[var(--text-main)]
+  hover:border-[var(--metal-main)]/40;
+}
+
+/* ────────────────────────────────────────────────
+   XP Capsule Bar
+   ──────────────────────────────────────────────── */
+
+.capsule {
+  @apply h-2 bg-[var(--bg-section)] rounded-full overflow-hidden
+  border border-[var(--border-soft)];
+}
+
+.upperwide {
+  @apply uppercase tracking-[0.2em];
+}
+
+/* ────────────────────────────────────────────────
+   LUXURY PRODUCT CARDS
+   ──────────────────────────────────────────────── */
+
+.card-lux {
+  @apply bg-[var(--bg-section)] border border-[var(--border-soft)]
+  rounded-2xl p-6 transition-all duration-300
+  hover:shadow-[0_0_25px_var(--aura)]
+  hover:border-[var(--metal-main)]/40
+  backdrop-blur-lg cursor-pointer;
+}
+
+/* Metallic underline hover */
+.metal-underline {
+  @apply relative inline-block;
+}
+.metal-underline::after {
+  content: "";
+  @apply absolute left-0 bottom-[-2px] h-[1px] w-0
+  bg-[var(--metal-main)] transition-all duration-300;
+}
+.metal-underline:hover::after {
+  @apply w-full;
+}
+
+/* ────────────────────────────────────────────────
+   CUSTOM CURSOR GLOW (white-friendly)
+   ──────────────────────────────────────────────── */
+
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: var(--metal-main);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999999;
+  mix-blend-mode: difference;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s ease, height 0.15s ease, opacity 0.2s ease;
+}
+
+/* Hover grow effect */
+.hover-grow:hover ~ .custom-cursor {
+  width: 32px;
+  height: 32px;
+}
+
+/* All clickable items must use the custom cursor */
+a, button {
+  cursor: url("/cursor-light.png") 16 16, auto !important;
 }
