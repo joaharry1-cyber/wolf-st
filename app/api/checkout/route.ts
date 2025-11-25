@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-10-29.clover", // Latest supported API for your Stripe SDK
+  apiVersion: "2025-10-29.clover", // <-- UPDATED
 });
 
 export async function POST(req: Request) {
   try {
     const items = await req.json();
-
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "No items found" }, { status: 400 });
     }
@@ -22,7 +21,7 @@ export async function POST(req: Request) {
       quantity: 1,
     }));
 
-    const shippingFee = 1400; // $14 -> cents
+    const shippingFee = 1400;
     line_items.push({
       price_data: {
         currency: "usd",
