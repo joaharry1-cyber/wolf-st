@@ -4,19 +4,30 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
-try {
-const session = await getServerSession(authOptions);
-if (!session || !session.user || !session.user.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await getServerSession(authOptions);
 
-const user = await prisma.user.findUnique({
-  where: { id: session.user.id },
-  select: { xp: true },
-});
+    // SINGLE GUARANTEED CHECK — TS now locks user.id as defined
+    const userId = session?.user?.id;
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-return NextResponse.json({ xp: user?.xp ?? 0 });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { xp: true },
+    });
 
-} catch (err) {
-console.error(err);
-return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-}
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ xp: user.xp });
+  } catch (error) {
+    console.error("XP ROUTE ERROR:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
