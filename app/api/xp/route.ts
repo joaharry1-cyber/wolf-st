@@ -7,15 +7,12 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    // TypeScript fix: explicitly check for user + id
-    if (!session || !session.user || !session.user.id) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id; // TS now knows this is safe
-
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: session.user!.id }, // <-- FIXED HERE
       select: { xp: true },
     });
 
