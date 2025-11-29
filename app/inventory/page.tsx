@@ -45,15 +45,18 @@ export default function InventoryPage() {
         if (!mounted || !data || !data.itemIds) return;
 
         const incomingIds: string[] = data.itemIds;
-        setItems((prev) => {
-          const next = prev.map((it) =>
+
+        // ✅ FIXED TYPE ERROR — always returns Item[]
+        setItems((prev: Item[]): Item[] => {
+          const next: Item[] = prev.map((it) =>
             incomingIds.includes(it.id)
-              ? { ...it, status: "on the way" }
+              ? { ...it, status: "on the way" as const }
               : it
           );
           localStorage.setItem("equippedItems", JSON.stringify(next));
           return next;
         });
+
       } catch {}
     }, 2000);
 
@@ -116,10 +119,8 @@ export default function InventoryPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#f7f7f7] text-black overflow-visible pb-36">
-      {/* Soft luxury gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-white to-[#f2f2f2] pointer-events-none" />
 
-      {/* Navbar */}
       <nav className="absolute top-0 left-0 w-full z-30 border-b border-neutral-200/60 bg-white/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-10 py-6 flex items-center justify-between text-sm uppercase tracking-[0.15em] text-neutral-700">
           <div className="text-xl font-semibold tracking-wider">
@@ -135,7 +136,6 @@ export default function InventoryPage() {
         </div>
       </nav>
 
-      {/* Title */}
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -145,7 +145,6 @@ export default function InventoryPage() {
         INVENTORY
       </motion.h1>
 
-      {/* Items Grid */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -198,7 +197,6 @@ export default function InventoryPage() {
                   </div>
                 )}
 
-                {/* Luxury Bubble */}
                 <AnimatePresence>
                   {activeBubble === item.id && item.status !== "on the way" && (
                     <motion.div
@@ -224,7 +222,6 @@ export default function InventoryPage() {
         )}
       </motion.div>
 
-      {/* Checkout Button */}
       {selectedItems.length > 0 && (
         <motion.button
           onClick={handleCheckout}
